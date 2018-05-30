@@ -19,8 +19,6 @@ filename BYTE "input.txt",0
 fileHandle DWORD ?	;handle to output file
 buffer BYTE BUFFER_SIZE DUP(?)
 errMsg1 BYTE "Cannot open file", 0dh, 0ah, 0
-errMsg2 BYTE "Error reading file.", 0dh, 0ah, 0
-errMsg3 BYTE "Error: Buffer too small for the file", 0dh, 0ah, 0
 
 ReadInput PROTO
 Manual PROTO
@@ -30,40 +28,31 @@ JukJulHan PROTO
 
 .code
 main PROC
-	;input.txt 파일 열기
-	mov edx, OFFSET filename
-	call OpenInputFile
+	
+	INVOKE CreateFile,
+		ADDR filename,GENERIC_READ,
+		DO_NOT_SHARE, NULL, OPEN_EXISTING,
+		FILE_ATTRIBUTE_READONLY, 0
+
 	mov fileHandle, eax
-	;에러잡기
-	cmp eax, INVALID_HANDLE_VALUE
-	jne file_ok
-	mov edx, OFFSET errMsg1		;file open 문제발생
-	call WriteString
-	jmp quit
 
-file_ok:
-	;input.txt 읽기
-	mov edx, OFFSET buffer
-	mov ecx, BUFFER_SIZE
-	call ReadFromFile
-	jnc check_buffer_size			;reading에 문제있는가?
-	mov edx, OFFSET errMsg2
-	call WriteString
-	jmp close_file
+	.IF eax == INVALID_HANDLE_VALUE
+		mov edx, OFFSET errMsg1
+		call WriteString
+		jmp quit
 
-check_buffer_size:
-	call dumpRegs
-	cmp eax, BUFFER_SIZE
-	jb buf_size_ok					;buffer 크기가 충분히 큰가? 지금 input.txt는 크기가 878인듯 함
-	mov edx, OFFSET errMsg3			;아니!
-	call WriteString
-	jmp quit
+	.ENDIF
 
-buf_size_ok:
-	
-	;모든 줄 읽으려면 루프 돌아야되는데 이거 메인에서 하나..? 메인 은근 할거 많은데?!!?!? 나중에 함수들 다짜고 짜야겄구만!
-	
-	INVOKE ReadInput				;ReadInput을 어떻게 구현할지 몰라서 파일 열어만 뒀엉
+	INVOKE ReadFile,
+		fileHandle, ADDR buffer,
+		BUFFER_SIZE, ADDR byteCount, 0
+
+	INVOKE CloseHandle, fileHandle
+
+	;-------------여기까지가 ppt에 나와있는 input파일 읽어서 buffer에 넣는 부분-------------
+
+
+
 
 if_manual:
 
