@@ -14,16 +14,6 @@ x2 SWORD 1000
 y2 SWORD 1000
 
 .code
-main PROC
-	PROTO ReadInput
-	PROTO Manual
-	PROTO Automatic
-	PROTO Output
-	PROTO JukJulHan
-	exit
-main ENDP
-END main
-
 ReadInput  PROC
 	;ax -> 아스키?
 	;bx -> 숫자*10
@@ -53,3 +43,13 @@ JukJulHan PROC
 	MOV ax,1
 	RET
 JukJulHan ENDP
+
+main PROC
+	ReadInput PROTO
+	Manual PROTO
+	Automatic PROTO
+	Output PROTO
+	JukJulHan PROTO
+	exit
+main ENDP
+END main
