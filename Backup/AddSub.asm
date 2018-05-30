@@ -1,5 +1,3 @@
-TITLE Add and Subtract (AddSub.asm)
-
 INCLUDE Irvine32.inc
 
 .data
