@@ -92,10 +92,10 @@ if_manual:
 
 	
 if_automatic:
-	mov ax, x	;imul 쓰려고 ax에 x를 옮겨둠
+	mov ax, x		;imul 쓰려고 ax에 x를 옮겨둠
 	INVOKE Automatic
-	mov y, ax	;y = a*x+b
-
+	mov y, ax		;y = a*x+b
+	jmp close_file	;에러 안나고 정상적으로 자동 수행했을 경우 파일 닫기
 
 error_invalid_file_handle:
 	mov edx, OFFSET errMsg1		;file open 문제발생
