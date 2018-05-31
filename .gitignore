@@ -1,4 +1,11 @@
+## Debug build directory
 /Debug/
+
+## .lst files are generated from .asm files, so it is redundant.
+/*.lst
+
+
+## End of custom entries
 
 
 ## Ignore Visual Studio temporary files, build results, and
