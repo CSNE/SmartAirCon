@@ -1,3 +1,5 @@
+;ENCODING: EUC-KR
+
 INCLUDE Irvine32.inc
 BUFFER_SIZE = 5000
 
@@ -17,10 +19,17 @@ x2 SWORD 1000
 y2 SWORD 1000
 filename BYTE "input.txt",0
 fileHandle DWORD ?	;handle to output file
-buffer BYTE BUFFER_SIZE DUP(?)
+buffer BYTE BUFFER_SIZE DUP(?) ;파일 내용 저장
+readProgress DWORD 0 ;파일을 어디까지 읽었는지. ReadInput에서 사용
+
 errMsg1 BYTE "Cannot open file", 0dh, 0ah, 0
 errMsg2 BYTE "Error reading file.", 0dh, 0ah, 0
 errMsg3 BYTE "Error: Buffer too small for the file", 0dh, 0ah, 0
+
+debugMsg1 BYTE "Opening File...", 0dh, 0ah, 0
+debugMsg2 BYTE "File opened successfully.", 0dh, 0ah, 0
+debugMsg3 BYTE "File handle: ", 0
+debugMsg4 BYTE "Read success. Bytes read: ", 0
 
 ReadInput PROTO
 Manual PROTO
@@ -30,41 +39,59 @@ JukJulHan PROTO
 
 .code
 main PROC
-	;input.txt 파일 열기
+
+get_file_handle:
+	;디버깅용 메시지
+	mov edx, OFFSET debugMsg1
+	call WriteString
+
+	;input.txt 파일 열기 (핸들 취득)
 	mov edx, OFFSET filename
 	call OpenInputFile
 	mov fileHandle, eax
-	;에러잡기
-	cmp eax, INVALID_HANDLE_VALUE
-	jne file_ok
-	mov edx, OFFSET errMsg1		;file open 문제발생
-	call WriteString
-	jmp quit
 
-file_ok:
+	;디버깅용 메시지
+	mov edx, OFFSET debugMsg3
+	call WriteString
+	call WriteHex
+	call Crlf
+
+	;파일 핸들 에러잡기 (에러있으면 -> error_invalid_file_handle)
+	cmp eax, INVALID_HANDLE_VALUE
+	je error_invalid_file_handle
+
+read_file:
+	;디버깅용 메시지
+	mov edx, OFFSET debugMsg2
+	call WriteString
+
 	;input.txt 읽기
 	mov edx, OFFSET buffer
 	mov ecx, BUFFER_SIZE
 	call ReadFromFile
-	jnc check_buffer_size			;reading에 문제있는가?
-	mov edx, OFFSET errMsg2
-	call WriteString
-	jmp close_file
 
-check_buffer_size:
-	call dumpRegs
+	;Read에 에러났는지 체크 (에러있으면 -> error_file_read)
+	jc error_file_read		
+
+	;buffer 크기가 충분한지 체크. 지금 input.txt는 크기가 878인듯 함
+	;(충분하지 않으면 -> error_buffer_overflow)
 	cmp eax, BUFFER_SIZE
-	jb buf_size_ok					;buffer 크기가 충분히 큰가? 지금 input.txt는 크기가 878인듯 함
-	mov edx, OFFSET errMsg3			;아니!
-	call WriteString
-	jmp quit
+	jnb error_buffer_overflow
 
-buf_size_ok:
+	;디버깅용 메시지
+	mov edx, OFFSET debugMsg4
+	call WriteString
+	call WriteInt
+	call Crlf
+	
+mainloop:
 	
 	;모든 줄 읽으려면 루프 돌아야되는데 이거 메인에서 하나..? 메인 은근 할거 많은데?!!?!? 나중에 함수들 다짜고 짜야겄구만!
 	
 	INVOKE ReadInput				;ReadInput을 어떻게 구현할지 몰라서 파일 열어만 뒀엉
 
+
+	jmp close_file
 if_manual:
 
 
@@ -75,6 +102,21 @@ if_automatic:
 	mov y, ax	;y = a*x+b
 
 
+error_invalid_file_handle:
+	mov edx, OFFSET errMsg1		;file open 문제발생
+	call WriteString
+	jmp quit
+
+error_file_read:
+	mov edx, OFFSET errMsg2
+	call WriteString
+	jmp close_file
+
+error_buffer_overflow:
+	mov edx, OFFSET errMsg3			;아니!
+	call WriteString
+	jmp quit
+
 close_file:
 	mov eax, fileHandle
 	call CloseFile
@@ -84,9 +126,10 @@ quit:
 main ENDP
 
 ReadInput  PROC
-	;ax -> 아스키?
+	;ax -> 아스키? ('a'=97 | 'm'=109)
 	;bx -> 숫자*10
 	;cx -> 숫자*10 => 옵션
+	;더 읽을 게 없다면 ax=0
 	;찬솔
 	RET
 ReadInput ENDP
