@@ -4,19 +4,19 @@ INCLUDE Irvine32.inc
 BUFFER_SIZE = 5000
 
 .data
-a SWORD 10
-b SWORD 50
-a1 SWORD ?
-b1 SWORD ?
-anew SWORD ?
-bnew SWORD ?
-k SWORD 10
-x SWORD ?	;자동일때 x(현재 온도)하나 받는거 저장할 변수
-y SWORD ?	;자동일때 결과 온도 반환할 변수
-x1 SWORD -50
-y1 SWORD -50
-x2 SWORD 1000
-y2 SWORD 1000
+a SDWORD 10
+b SDWORD 50		;아래 automatic 계산에서 이걸 500으로 바꿔서 계산해둠. 바꿀거면 자동부분도 바꿀 것
+a1 SDWORD ?
+b1 SDWORD ?
+anew SDWORD ?
+bnew SDWORD ?
+k SDWORD 10
+x SDWORD ?	;자동일때 x(현재 온도)하나 받는거 저장할 변수
+y SDWORD ?	;자동일때 결과 온도 반환할 변수
+x1 SDWORD -50
+y1 SDWORD -50
+x2 SDWORD 1000
+y2 SDWORD 1000
 filename BYTE "input.txt",0
 fileHandle DWORD ?	;handle to output file
 buffer BYTE BUFFER_SIZE DUP(?) ;파일 내용 저장
@@ -108,32 +108,44 @@ mainloop:
 		ADD eax,0
 		JZ readLoopEnd
 
+		CMP eax, 109		;eax = 'm'일 때(수동)
+		JE if_manual
+		JMP if_automatic	;eax = 'a'일 때(자동). 외에 잘못된 입력일 때는 아직 고려X
+		;CALL WriteChar
+		;CALL Crlf
+		;MOV eax,ebx
+		;CALL WriteInt
+		;CALL Crlf
+		;MOV eax,ecx
+		;CALL WriteInt
+		;CALL Crlf
+		;CALL Crlf
 
-		CALL WriteChar
-		CALL Crlf
-		MOV eax,ebx
-		CALL WriteInt
-		CALL Crlf
-		MOV eax,ecx
-		CALL WriteInt
-		CALL Crlf
-		CALL Crlf
 
+	if_manual:
+		INVOKE Manual
+
+		JMP next_line
+	
+	if_automatic:
+		;'a'일 때는 숫자 하나 받는데, 이게 현재 온도 x이고 ebx에 저장되어있음.
+		;구하려는 건 y = a*x+b
+
+		INVOKE Automatic
+		MOV y, edx	;y = a*x+b
+		
+		;현재 y에 저장되어 있는 값은 소수점 없는 ax+b의 결과! y 그대로 출력하면 됨.
+
+		INVOKE Output
+
+	next_line:
 		JMP readLoop
 
 	readLoopEnd:
 
 	jmp close_file
 
-if_manual:
 
-
-	
-if_automatic:
-	mov ax, x		;imul 쓰려고 ax에 x를 옮겨둠
-	INVOKE Automatic
-	mov y, ax		;y = a*x+b
-	jmp close_file	;에러 안나고 정상적으로 자동 수행했을 경우 파일 닫기
 
 error_invalid_file_handle:
 	mov edx, OFFSET errMsg1		;file open 문제발생
@@ -366,10 +378,18 @@ Manual PROC
 	RET
 Manual ENDP
 
-Automatic PROC
+Automatic PROC USES eax ebx
 
-	imul a		;ax = a*x 
-	add ax, b		;ax = a*x+b
+	MOV eax, 10
+	IMUL b			
+	MOV b, eax		;b = 500
+	MOV eax, a
+	IMUL ebx		;eax = a*x(10곱해진 수끼리의 곱셈이므로 100을 나눠야함)
+
+	ADD eax, b		;eax = a*x+b(구하려는 값보다 100배인 상태)
+	MOV ebx, 100
+	IDIV ebx
+	MOV edx, eax
 
 	RET
 Automatic ENDP
