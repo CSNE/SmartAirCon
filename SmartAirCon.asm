@@ -380,6 +380,9 @@ Manual ENDP
 
 Automatic PROC USES eax ebx
 
+	;edx = 반환할 y값
+	;eax, ebx는 임시로 쓰일 예정이라 USES 함
+
 	MOV eax, 10
 	IMUL b			
 	MOV b, eax		;b = 500
