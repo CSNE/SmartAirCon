@@ -126,8 +126,7 @@ mainloop:
 	jmp close_file
 
 if_manual:
-
-
+	INVOKE Manual
 	
 if_automatic:
 	mov ax, x		;imul 쓰려고 ax에 x를 옮겨둠
@@ -359,10 +358,28 @@ ReadInput  PROC
 ReadInput ENDP
 
 Manual PROC
-	;x1,x2,y1,y2,a,b를 사용해서 anew, bnew를 구하고 k를 감소
-	;a,b -> anew, bnew
 	;Manual : 현재 온도가 같은 상태는 두번 저장하지 않는다(?)
+	cmp x,x1
+	jz Hollow1
+	
+	;x1,x2,y1,y2,a,b를 사용해서 anew, bnew를 구하고 k를 감소
+	;(x1,y1)->(x2,y2)
+	mov ax,x1
+	mov bx,y1
+	mov x2,ax
+	mov y2,bx
+	
+	;(x,y)->(x1,y1)
+	mov ax,x
+	mov bx,y
+	mov x1,ax
+	mov y1,bx
+	
+	;???? 32비트 처리?
+	;a,b -> anew, bnew
 	;뀪뀪이
+
+	Hollow1:
 	RET
 Manual ENDP
 
