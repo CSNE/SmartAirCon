@@ -124,6 +124,7 @@ mainloop:
 
    if_manual:
       INVOKE Manual
+      INVOKE Output
 
       JMP next_line
    
@@ -132,7 +133,6 @@ mainloop:
       ;구하려는 건 y = a*x+b
 
       INVOKE Automatic
-      MOV y, edx   ;y = a*x+b
       
       ;현재 y에 저장되어 있는 값은 소수점 없는 ax+b의 결과! y 그대로 출력하면 됨.
 
@@ -375,7 +375,7 @@ Manual PROC
 	;Manual : 현재 온도가 같은 상태는 두번 저장하지 않는다(?)
 	;x1,x2,y1,y2,a,b를 사용해서 anew, bnew를 구하고 k를 감소
 	mov eax,x
-	cmp eax,x1
+	cmp eax,x1	
 	jz equal1
 	
 	mov eax,x1
@@ -387,6 +387,8 @@ Manual PROC
 	mov ebx,y
 	mov x1,eax
 	mov y1,ebx
+	cmp x2,10000
+	je equal1
 	
 	mov eax,y2
 	sub eax,y1
@@ -394,6 +396,8 @@ Manual PROC
 	sub ebx,x1
 	mov ecx,eax
 	cdq
+	mov edx,10
+	imul edx
 	idiv ebx
 	mov a1,eax
 	
@@ -433,9 +437,38 @@ Manual PROC
 	
 	;a,b -> anew, bnew
 	mov eax,anew
-	mov ebx,bnew
+	cmp eax,0
+	jge plus1
+	
+	sub eax,5
+	jmp overend1
+	plus1:
+	add eax,5
+
+	overend1:
+	cdq
+	mov ebx,10
+	idiv ebx
+	mov ebx,10
+	imul ebx
 	mov a,eax
-	mov b,ebx
+	
+	mov eax,bnew
+	cmp eax,0
+	jge plus2
+	
+	sub eax,5
+	jmp overend2
+	plus2:
+	add eax,5
+
+	overend2:
+	cdq
+	mov ebx,10
+	idiv ebx
+	mov ebx,10
+	imul ebx
+	mov b,eax
 	
 	cmp k,1
 	jz equal1
@@ -446,21 +479,21 @@ Manual PROC
 	RET
 Manual ENDP
 
-Automatic PROC USES eax ebx
+Automatic PROC
 
    ;edx = 반환할 y값
    ;eax, ebx는 임시로 쓰일 예정이라 USES 함
 
-   MOV eax, 10
-   IMUL b         
-   MOV b, eax      ;b = 500
-   MOV eax, a
-   IMUL ebx      ;eax = a*x(10곱해진 수끼리의 곱셈이므로 100을 나눠야함)
-
-   ADD eax, b      ;eax = a*x+b(구하려는 값보다 100배인 상태)
-   MOV ebx, 100
-   IDIV ebx
-   MOV edx, eax
+   mov eax,a
+   imul x
+   mov ecx,10
+   idiv ecx
+   add eax,b
+   add eax,5
+   cdq
+   idiv ecx
+   imul ecx
+   mov y, eax
 
    RET
 Automatic ENDP
