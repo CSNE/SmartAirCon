@@ -18,13 +18,19 @@ y1 SDWORD -50
 x2 SDWORD 1000
 y2 SDWORD 1000
 filename BYTE "input.txt",0
-fileHandle DWORD ?   ;handle to output file
+fileHandle DWORD ?   ;handle to input file
 buffer BYTE BUFFER_SIZE DUP(?) ;파일 내용 저장
 readProgress DWORD 0 ;파일을 어디까지 읽었는지. ReadInput에서 사용
+
+outputFilename BYTE "output.txt",0
+outputBuffer BYTE BUFFER_SIZE DUP(0) ;출력 파일 내용 저장
+outputFileHandle DWORD ?   ;handle to output file
+outputBytesWritten DWORD 0
 
 errMsg1 BYTE "Cannot open file", 0dh, 0ah, 0
 errMsg2 BYTE "Error reading file.", 0dh, 0ah, 0
 errMsg3 BYTE "Error: Buffer too small for the file", 0dh, 0ah, 0
+errMsg4 BYTE "Error: Buffer overrun at Output", 0dh, 0ah, 0
 
 debugMsg1 BYTE "Opening File...", 0dh, 0ah, 0
 debugMsg2 BYTE "File opened successfully.", 0dh, 0ah, 0
@@ -37,6 +43,18 @@ debugMsg8 BYTE "ReadInput Loop1", 0
 debugMsg9 BYTE "ReadInput Loop2", 0
 debugMsg10 BYTE "ReadInput Loop3", 0
 debugMsg11 BYTE "char:", 0
+debugMsg12 BYTE "Getting handle to output.txt", 0dh, 0ah, 0
+debugMsg13 BYTE "Calculating string length...", 0dh, 0ah, 0
+debugMsg14 BYTE "Writing to file...", 0dh, 0ah, 0
+debugMsg15 BYTE "Closing file handles...", 0dh, 0ah, 0
+debugMsg16 BYTE "Entering main loop...", 0dh, 0ah, 0
+debugMsg17 BYTE "Main loop terminated.", 0dh, 0ah, 0
+
+tempMsg1 BYTE "1", 0dh, 0ah, 0
+tempMsg2 BYTE "2", 0dh, 0ah, 0
+tempMsg3 BYTE "3", 0dh, 0ah, 0
+tempMsg4 BYTE "4", 0dh, 0ah, 0
+tempMsg5 BYTE "5", 0dh, 0ah, 0
 
 dwTempVar1 DWORD ?
 dwTempVar2 DWORD ?
@@ -52,6 +70,8 @@ JukJulHan PROTO
 
 .code
 main PROC
+
+
 
 get_file_handle:
    ;디버깅용 메시지
@@ -100,7 +120,10 @@ read_file:
 mainloop:
    
    ;모든 줄 읽으려면 루프 돌아야되는데 이거 메인에서 하나..? 메인 은근 할거 많은데?!!?!? 나중에 함수들 다짜고 짜야겄구만!
-   
+
+   ;디버깅용 메시지
+   mov edx, OFFSET debugMsg16
+   call WriteString
 
    readLoop:
       INVOKE ReadInput            ;ReadInput을 어떻게 구현할지 몰라서 파일 열어만 뒀엉
@@ -124,6 +147,12 @@ mainloop:
 
    if_manual:
       INVOKE Manual
+
+	  ;print(y)
+	  MOV eax, y
+	  CALL WriteInt
+	  Call Crlf
+
       INVOKE Output
 
       JMP next_line
@@ -136,6 +165,11 @@ mainloop:
       
       ;현재 y에 저장되어 있는 값은 소수점 없는 ax+b의 결과! y 그대로 출력하면 됨.
 
+	  ;print(y)
+	  MOV eax, y
+	  CALL WriteInt
+	  Call Crlf
+
       INVOKE Output
 
    next_line:
@@ -143,28 +177,82 @@ mainloop:
 
    readLoopEnd:
 
+   ;디버깅용 메시지
+   mov edx, OFFSET debugMsg17
+   call WriteString
+
+   ;이 부분은 output.txt를 쓰는 과정
+   ;input.txt는 Irvine에 있는 프로시져를 썼는데,
+   ;여기서는 windows에서 제공하는 프로시져를 바로 씀.
+   ;(내가 Irvine 책이 없어서 무슨 프로시져가 뭔지 모름...)
+   ;어차피 별로 차이는 안남. 약간 CALL 하는 방법이 다를 뿐
+
+   ;이 부분을 따로 프로시져로 빼는 게 나으려나...?
+
+   ;print("Getting handle to output.txt")
+   mov edx, OFFSET debugMsg12
+   call WriteString
+
+   ;이제 file handle 요청. 실패하면 error_invalid_file_handle
+   INVOKE CreateFile, ADDR outputFilename, GENERIC_WRITE, DO_NOT_SHARE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0
+   MOV outputFileHandle, eax;
+   CMP eax, INVALID_HANDLE_VALUE
+   JE error_invalid_file_handle
+
+   ;print("Calculating string length...")
+   mov edx, OFFSET debugMsg13
+   call WriteString
+
+   ;outputBuffer의 길이를 측정.
+   MOV esi, OFFSET outputBuffer
+   MOV eax,0
+   stringLengthLoop:
+	  MOV bl, BYTE PTR[esi]
+
+	  CMP bl,0
+	  JE stringLengthLoopExit
+	  INC eax
+
+	  INC esi
+	  JMP stringLengthLoop
+   stringLengthLoopExit:
+
+   ;print("Writing to file...")
+   mov edx, OFFSET debugMsg14
+   call WriteString
+
+   ;WriteFile을 통해 실제로 파일에 데이터를 씀.
+   INVOKE WriteFile, outputFileHandle, ADDR outputBuffer, eax, outputBytesWritten, 0
+   
+   ;output.txt 작업 끝.
+
    jmp close_file
-
-
 
 error_invalid_file_handle:
    mov edx, OFFSET errMsg1      ;file open 문제발생
    call WriteString
    jmp quit
 
-error_file_read:
+error_file_read: ;파일 읽는 중 문제
    mov edx, OFFSET errMsg2
    call WriteString
    jmp close_file
 
-error_buffer_overflow:
+error_buffer_overflow: ;버퍼 터짐
    mov edx, OFFSET errMsg3         ;아니!
    call WriteString
    jmp quit
 
 close_file:
+   ;print("Closing file handles...")
+   mov edx, OFFSET debugMsg15
+   call WriteString
+
    mov eax, fileHandle
-   call CloseFile
+   call CloseFile ;input 닫기
+
+   INVOKE CloseHandle, outputFileHandle ;output.txt 닫기
+
 
 quit:
    exit
@@ -359,7 +447,7 @@ ReadInput  PROC
 
       ;dwTempVar3*=10
       MOV eax, dwTempVar3
-      CDQ
+      CDQ ;<<여기 CDQ 없어도 되지 않나????
       MOV edx,10
       MUL edx
       MOV dwTempVar3, eax
@@ -499,9 +587,138 @@ Automatic PROC
 Automatic ENDP
 
 Output PROC
-   ;ax로 숫자 * 10을 받고 출력함
-   ;찬솔
-   RET
+	;ax로 숫자 * 10을 받고 출력함
+	;찬솔
+	
+	
+	;esi: 지금 쓰고 있는 string 주소
+	;ecx: 지금 숫자
+	;eax,edx,ebx: DIV 명령어에 쓰임
+
+	;dwTempVar1: 첫번째 자리
+	;dwTempVar2: 두번째 자리
+	;dwTempVar3: 세번째 자리(소수점 아래)
+
+
+	;string의 맨 끝을 찾음
+	MOV ecx, LENGTHOF outputBuffer
+	MOV esi, OFFSET outputBuffer
+	stringloop:
+		MOV bl, BYTE PTR[esi]  ;bl=string[esi]
+		ADD bl, 0
+		JZ endloop           ;if bl==0: break
+
+		DEC ecx                ;ecx-- (ecx=남아있는 byte 개수)
+		
+		MOV edx,ecx
+		SUB edx,10
+		CMP edx,0
+		JNG bufferOverrun     ;if ecx<10: goto bufferOverrun
+
+		INC esi                ;esi++ (next character...)
+
+		JMP stringloop         ;loop forever
+	endloop:
+
+	;계산 ax를 ecx로 옮겨둠
+	MOVZX ecx, ax
+
+
+
+
+	; eax=ecx/10
+	; edx=ecx%10
+	MOV eax, ecx ;eax에 넣고
+	CDQ          ;edx로 확장
+	MOV ebx,10   ;나눌 수 넣음
+	DIV ebx      ;DIV
+
+	; 수 --> ascii
+	; '0'=48
+	; edx=toString(edx)
+	ADD edx, 48
+
+	;dwTempVar3=edx
+	MOV dwTempVar3,edx
+
+	;ecx=ecx/10
+	MOV ecx, eax
+
+
+	; eax=ecx/10
+	; edx=ecx%10
+	MOV eax, ecx ;eax에 넣고
+	CDQ          ;edx로 확장
+	MOV ebx,10   ;나눌 수 넣음
+	DIV ebx      ;DIV
+
+	; 수 --> ascii
+	; '0'=48
+	; edx=toString(edx)
+	ADD edx, 48
+
+	;dwTempVar2=edx
+	MOV dwTempVar2,edx
+
+	;ecx=ecx/10
+	MOV ecx, eax
+
+
+	; eax=ecx/10
+	; edx=ecx%10
+	MOV eax, ecx ;eax에 넣고
+	CDQ          ;edx로 확장
+	MOV ebx,10   ;나눌 수 넣음
+	DIV ebx      ;DIV
+
+	; 수 --> ascii
+	; '0'=48
+	; edx=toString(edx)
+	ADD edx, 48
+
+	;dwTempVar1=edx
+	MOV dwTempVar1,edx
+
+
+	;첫째 자리
+	MOV eax, dwTempVar1;
+	MOV BYTE PTR[esi], al;
+	INC esi
+
+	;둘째
+	MOV eax, dwTempVar2;
+	MOV BYTE PTR[esi], al;
+	INC esi
+
+	;소수점
+	MOV BYTE PTR[esi], 46; ;'.'
+	INC esi
+
+	;셋째
+	MOV eax, dwTempVar3;
+	MOV BYTE PTR[esi], al;
+	INC esi
+
+	;Carriage return
+	MOV BYTE PTR[esi], 13;'\r'
+	INC esi
+
+	;Newline
+	MOV BYTE PTR[esi], 10;'\n'
+	INC esi
+
+
+	JMP terminate
+
+
+	bufferOverrun: ;버퍼 터졌을때
+		mov edx, OFFSET errMsg4
+		call WriteString
+	
+
+	terminate:
+	
+	RET
 Output ENDP
 
 JukJulHan PROC

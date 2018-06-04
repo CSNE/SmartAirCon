@@ -4,6 +4,8 @@
 ## .lst files are generated from .asm files, so it is redundant.
 /*.lst
 
+##output.txt is a product of the program - no need to share this!
+/output.txt
 
 ## End of custom entries
 
