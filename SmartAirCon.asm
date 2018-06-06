@@ -570,18 +570,21 @@ Manual ENDP
 Automatic PROC
 
    ;edx = 반환할 y값
-   ;eax, ebx는 임시로 쓰일 예정이라 USES 함
+   ;이미 받은 후니까 eax, ebx, ecx 맘대로 써버림!
 
-   mov eax,a
-   imul x
-   mov ecx,10
-   idiv ecx
-   add eax,b
-   add eax,5
-   cdq
-   idiv ecx
-   imul ecx
-   mov y, eax
+   MOV ecx, b		;원래 b값 ecx에 저장해둠
+   MOV eax, 10
+   IMUL b         
+   MOV b, eax      ;b = 500
+   MOV eax, a
+   IMUL ebx
+
+   ADD eax, b
+   MOV ebx, 100
+   IDIV ebx
+   MOV y, eax
+
+   MOV b, ecx		;b값 복원
 
    RET
 Automatic ENDP
