@@ -565,21 +565,32 @@ Automatic PROC
 
 	;y=ax+b의 y를 10곱해진 상태로 반환해야하는데..
 	;이미 받은 후니까 eax, ebx, ecx 맘대로 써버림!
-	;a,x,b,y 모두 10 곱해져있는 상태
+	;a,x,b,y 모두 100 곱해져있는 상태
 
 	MOV x, ebx
 
 	MOV ecx, b		;원래 b값 ecx에 저장해둠
 	MOV eax, 100
 	IMUL b
-	MOV b, eax		;b = b*10(100곱해져 있는 상태)
+	MOV b, eax		;b = b*100(100곱해져 있는 상태)
 	MOV eax, a
 	IMUL x			;eax = a*x
 
 	ADD eax, b		;eax = ax+b
 	MOV ebx, 100
-	IDIV ebx			;eax = (ax+b)/10
+	IDIV ebx			;eax = (ax+b)/100
 	MOV y, eax		;y는 10곱해져있는 상태
+	
+	mov ebx,10
+	cdq
+	idiv ebx
+	cmp edx,5
+	jb not_plus
+	add eax,1
+	not_plus:
+	imul ebx
+
+	mov y,eax
 
 	MOV b, ecx		;b값 복원. 10만 곱해져있는 상태로
 
