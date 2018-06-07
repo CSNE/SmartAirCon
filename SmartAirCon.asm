@@ -4,8 +4,8 @@ INCLUDE Irvine32.inc
 BUFFER_SIZE = 5000
 
 .data
-a SDWORD 10
-b SDWORD 50      ;아래 automatic 계산에서 이걸 500으로 바꿔서 계산해둠. 바꿀거면 자동부분도 바꿀 것
+a SDWORD 100
+b SDWORD 500      ;아래 automatic 계산에서 이걸 5000으로 바꿔서 계산해둠. 바꿀거면 자동부분도 바꿀 것
 a1 SDWORD ?
 b1 SDWORD ?
 anew SDWORD ?
@@ -497,14 +497,14 @@ Manual PROC
 	sub ebx,x1		;ebx = x2-x1
 	mov ecx,eax		;eax = ecx = y2-y1
 	cdq				;eax를 edx로 확장
-	mov edx,10
-	imul edx		;eax*edx = 10*(y2-y1)
-	idiv ebx		;eax/ebx = 10*(y2-y1) / (x2-x1) -> 나누면 10끼리도 나눠지니까 따로 10곱해줌
-	mov a1,eax		;a1 = 10*(y2-y1) / (x2-x1). a1은 10 곱해진 상태
+	mov edx,100
+	imul edx		;eax*edx = 100*(y2-y1)
+	idiv ebx		;eax/ebx = 100*(y2-y1) / (x2-x1) -> 나누면 10끼리도 나눠지니까 따로 100곱해줌
+	mov a1,eax		;a1 = 100*(y2-y1) / (x2-x1). a1은 100 곱해진 상태
 	
 	mov eax,ecx		;ecx에 저장했던 y2-y1 eax로 다시 옮기고
 	neg eax			;eax = -(y2-y1)
-	imul x1			;매개변수 두개길래 하나로 고쳤어! eax = -x1(10*(y2-y1) / (x2-x1)))
+	imul x1			;매개변수 두개길래 하나로 고쳤어! eax = -x1(100*(y2-y1) / (x2-x1)))
 	cdq
 	idiv ebx		;eax = eax/ebx 의 몫
 	add eax,y1		;-x1(y2-y1)/(x2-x1) + y1
@@ -517,10 +517,10 @@ Manual PROC
 	mov ecx,eax		;ecx = eax = a*(10-k)
 	mov eax,a1		;eax = a1
 	imul k			;eax = a1*k
-	add eax,ecx		;eax = eax + ecx = a1*k + a*(10-k) -> 이러면 100 출력값보다 곱해진 상태
+	add eax,ecx		;eax = eax + ecx = a1*k + a*(10-k) -> 이러면 1000 출력값보다 곱해진 상태
 	cdq
 	mov ebx,10
-	idiv ebx		;eax = eax/10 = (a1*k + a*(10-k))/10 -> 이러면 딱 10곱해진 상태 굿
+	idiv ebx		;eax = eax/10 = (a1*k + a*(10-k))/10 -> 이러면 딱 100곱해진 상태 굿
 	mov anew,eax	;anew를 eax로 갱신
 	
 	mov eax,b		;반복해서 bnew = (10-k)b + kb1 구함
@@ -536,6 +536,11 @@ Manual PROC
 	idiv ebx
 	mov bnew,eax
 
+	cmp k,1
+	je k_decrease
+	dec k
+	k_decrease:
+
 	MOV eax, anew
 	call writeint
 	MOV eax, bnew
@@ -543,43 +548,9 @@ Manual PROC
 	
 	;a,b -> anew, bnew
 	mov eax,anew
-	cmp eax,0
-	jge plus1		;eax >= 0이면 plus1로
-	
-	sub eax,5		;eax < 0이면 eax = eax - 5
-	jmp overend1
-plus1:
-	add eax,5
-
-overend1:
-	cdq
-	mov ebx,10
-	idiv ebx		;eax = eax/10
-	mov ebx, 10
-	imul ebx		;eax = eax*10
-	mov a,eax		;a = eax*10
-	
+	mov a,eax
 	mov eax,bnew
-	cmp eax,0
-	jge plus2
-	
-	sub eax,5
-	jmp overend2
-plus2:
-	add eax,5
-
-overend2:
-	cdq
-	mov ebx,10
-	idiv ebx
-	mov ebx,10
-	imul ebx
 	mov b,eax
-	
-	cmp k,1
-	jz equal1
-	dec k
-	;뀪뀪이
 	
 	MOV eax, a
 	call writeint
@@ -599,14 +570,14 @@ Automatic PROC
 	MOV x, ebx
 
 	MOV ecx, b		;원래 b값 ecx에 저장해둠
-	MOV eax, 10
+	MOV eax, 100
 	IMUL b
 	MOV b, eax		;b = b*10(100곱해져 있는 상태)
 	MOV eax, a
 	IMUL x			;eax = a*x
 
 	ADD eax, b		;eax = ax+b
-	MOV ebx, 10
+	MOV ebx, 100
 	IDIV ebx			;eax = (ax+b)/10
 	MOV y, eax		;y는 10곱해져있는 상태
 
