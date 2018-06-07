@@ -569,6 +569,11 @@ Automatic PROC
 
 	MOV x, ebx
 
+	cmp x,301
+	jne debugif
+	mov eax,100
+	debugif:
+
 	MOV ecx, b		;원래 b값 ecx에 저장해둠
 	MOV eax, 100
 	IMUL b
@@ -578,6 +583,7 @@ Automatic PROC
 
 	ADD eax, b		;eax = ax+b
 	MOV ebx, 100
+	cdq
 	IDIV ebx			;eax = (ax+b)/100
 	MOV y, eax		;y는 10곱해져있는 상태
 	
