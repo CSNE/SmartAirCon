@@ -148,8 +148,12 @@ mainloop:
    if_manual:
       INVOKE Manual
 
+	  ;y값이 10 곱해져있는 상태로 보존하려 그런거라 y에 10나눠서 출력해야 됨.
 	  ;print(y)
 	  MOV eax, y
+	  CDQ
+	  MOV ebx, 10
+	  IDIV ebx
 	  CALL WriteInt
 	  Call Crlf
 
@@ -163,10 +167,14 @@ mainloop:
 
       INVOKE Automatic
       
-      ;현재 y에 저장되어 있는 값은 소수점 없는 ax+b의 결과! y 그대로 출력하면 됨.
+      ;현재 y에 저장되어 있는 값은 y=(ax+b)*10의 결과!
+	  ;y값이 10 곱해져있는 상태로 보존하려 그런거라 y에 10나눠서 출력해야 됨.
 
 	  ;print(y)
 	  MOV eax, y
+	  CDQ
+	  MOV ebx, 10
+	  IDIV ebx
 	  CALL WriteInt
 	  Call Crlf
 
@@ -462,55 +470,60 @@ Manual PROC
 	
 	;Manual : 현재 온도가 같은 상태는 두번 저장하지 않는다(?)
 	;x1,x2,y1,y2,a,b를 사용해서 anew, bnew를 구하고 k를 감소
+
+	;야 0의 이유를 알았어 받은 입력값을 x,y에 넣는 작업을 안한거같아!!! 감쪽같네..
+	MOV x, ebx		;input으로 받은 처음 값(현재 온도) x에 저장
+	MOV y, ecx		;input으로 받은 나중 값(원하는 온도) y에 저장
+
 	mov eax,x
 	cmp eax,x1	
 	jz equal1
-	
-	mov eax,x1
+					;내가 이해한대로 주석달아봤는데 이게 아닌데? 한 부분은 고쳐줘!
+	mov eax,x1		;원래의 x1,y1을 x2,x2로 옮겨둠. x1,y1 바꾸려고
 	mov ebx,y1
 	mov x2,eax
 	mov y2,ebx
 	
-	mov eax,x
+	mov eax,x		;받은 x,y를 x1, y1에 넣어 축적용 데이터 갱신함 
 	mov ebx,y
 	mov x1,eax
 	mov y1,ebx
-	cmp x2,10000
+	cmp x2,10000	;
 	je equal1
 	
 	mov eax,y2
-	sub eax,y1
-	mov ebx,x2
-	sub ebx,x1
-	mov ecx,eax
-	cdq
+	sub eax,y1		;eax = y2-y1
+	mov ebx,x2		
+	sub ebx,x1		;ebx = x2-x1
+	mov ecx,eax		;eax = ecx = y2-y1
+	cdq				;eax를 edx로 확장
 	mov edx,10
-	imul edx
-	idiv ebx
-	mov a1,eax
+	imul edx		;eax*edx = 10*(y2-y1)
+	idiv ebx		;eax/ebx = 10*(y2-y1) / (x2-x1) -> 나누면 10끼리도 나눠지니까 따로 10곱해줌
+	mov a1,eax		;a1 = 10*(y2-y1) / (x2-x1). a1은 10 곱해진 상태
 	
-	mov eax,ecx
-	neg eax
-	imul eax,x1
+	mov eax,ecx		;ecx에 저장했던 y2-y1 eax로 다시 옮기고
+	neg eax			;eax = -(y2-y1)
+	imul x1			;매개변수 두개길래 하나로 고쳤어! eax = -x1(10*(y2-y1) / (x2-x1)))
 	cdq
-	idiv ebx
-	add eax,y1
-	mov b1,eax
+	idiv ebx		;eax = eax/ebx 의 몫
+	add eax,y1		;-x1(y2-y1)/(x2-x1) + y1
+	mov b1,eax		;b1 = -x1(y2-y1)/(x2-x1) + y1
 	
-	mov eax,a
-	mov ebx,10
-	sub ebx,k
-	imul ebx
-	mov ecx,eax
-	mov eax,a1
-	imul k
-	add eax,ecx
+	mov eax,a		;eax = a
+	mov ebx,10		;ebx = 10
+	sub ebx,k		;ebx = ebx - k = 10 - k
+	imul ebx		;eax = a*(10-k)
+	mov ecx,eax		;ecx = eax = a*(10-k)
+	mov eax,a1		;eax = a1
+	imul k			;eax = a1*k
+	add eax,ecx		;eax = eax + ecx = a1*k + a*(10-k) -> 이러면 100 출력값보다 곱해진 상태
 	cdq
 	mov ebx,10
-	idiv ebx
-	mov anew,eax
+	idiv ebx		;eax = eax/10 = (a1*k + a*(10-k))/10 -> 이러면 딱 10곱해진 상태 굿
+	mov anew,eax	;anew를 eax로 갱신
 	
-	mov eax,b
+	mov eax,b		;반복해서 bnew = (10-k)b + kb1 구함
 	mov ebx,10
 	sub ebx,k
 	imul ebx
@@ -522,24 +535,29 @@ Manual PROC
 	cdq
 	idiv ebx
 	mov bnew,eax
+
+	MOV eax, anew
+	call writeint
+	MOV eax, bnew
+	call writeint
 	
 	;a,b -> anew, bnew
 	mov eax,anew
 	cmp eax,0
-	jge plus1
+	jge plus1		;eax >= 0이면 plus1로
 	
-	sub eax,5
+	sub eax,5		;eax < 0이면 eax = eax - 5
 	jmp overend1
-	plus1:
+plus1:
 	add eax,5
 
-	overend1:
+overend1:
 	cdq
 	mov ebx,10
-	idiv ebx
-	mov ebx,10
-	imul ebx
-	mov a,eax
+	idiv ebx		;eax = eax/10
+	mov ebx, 10
+	imul ebx		;eax = eax*10
+	mov a,eax		;a = eax*10
 	
 	mov eax,bnew
 	cmp eax,0
@@ -547,10 +565,10 @@ Manual PROC
 	
 	sub eax,5
 	jmp overend2
-	plus2:
+plus2:
 	add eax,5
 
-	overend2:
+overend2:
 	cdq
 	mov ebx,10
 	idiv ebx
@@ -563,30 +581,38 @@ Manual PROC
 	dec k
 	;뀪뀪이
 	
-	equal1:
+	MOV eax, a
+	call writeint
+	MOV eax, b
+	call writeint
+
+equal1:
 	RET
 Manual ENDP
 
 Automatic PROC
 
-   ;edx = 반환할 y값
-   ;이미 받은 후니까 eax, ebx, ecx 맘대로 써버림!
+	;y=ax+b의 y를 10곱해진 상태로 반환해야하는데..
+	;이미 받은 후니까 eax, ebx, ecx 맘대로 써버림!
+	;a,x,b,y 모두 10 곱해져있는 상태
 
-   MOV ecx, b		;원래 b값 ecx에 저장해둠
-   MOV eax, 10
-   IMUL b         
-   MOV b, eax      ;b = 500
-   MOV eax, a
-   IMUL ebx
+	MOV x, ebx
 
-   ADD eax, b
-   MOV ebx, 100
-   IDIV ebx
-   MOV y, eax
+	MOV ecx, b		;원래 b값 ecx에 저장해둠
+	MOV eax, 10
+	IMUL b
+	MOV b, eax		;b = b*10(100곱해져 있는 상태)
+	MOV eax, a
+	IMUL x			;eax = a*x
 
-   MOV b, ecx		;b값 복원
+	ADD eax, b		;eax = ax+b
+	MOV ebx, 10
+	IDIV ebx			;eax = (ax+b)/10
+	MOV y, eax		;y는 10곱해져있는 상태
 
-   RET
+	MOV b, ecx		;b값 복원. 10만 곱해져있는 상태로
+
+	RET
 Automatic ENDP
 
 Output PROC
