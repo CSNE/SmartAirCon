@@ -13,10 +13,10 @@ bnew SDWORD ?
 k SDWORD 10
 x SDWORD ?   ;자동일때 x(현재 온도)하나 받는거 저장할 변수
 y SDWORD ?   ;자동일때 결과 온도 반환할 변수
-x1 SDWORD -50
-y1 SDWORD -50
-x2 SDWORD 1000
-y2 SDWORD 1000
+x1 SDWORD 10000
+y1 SDWORD 10000
+x2 SDWORD 10000
+y2 SDWORD 10000
 filename BYTE "input.txt",0
 fileHandle DWORD ?   ;handle to input file
 buffer BYTE BUFFER_SIZE DUP(?) ;파일 내용 저장
