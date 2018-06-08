@@ -154,7 +154,7 @@ mainloop:
 	  CDQ
 	  MOV ebx, 10
 	  IDIV ebx
-	  CALL WriteInt
+	  CALL WriteDec
 	  Call Crlf
 
       INVOKE Output
@@ -175,7 +175,7 @@ mainloop:
 	  CDQ
 	  MOV ebx, 10
 	  IDIV ebx
-	  CALL WriteInt
+	  CALL WriteDec
 	  Call Crlf
 
       INVOKE Output
@@ -541,10 +541,6 @@ Manual PROC
 	dec k
 	k_decrease:
 
-	MOV eax, anew
-	call writeint
-	MOV eax, bnew
-	call writeint
 	
 	;a,b -> anew, bnew
 	mov eax,anew
@@ -552,10 +548,6 @@ Manual PROC
 	mov eax,bnew
 	mov b,eax
 	
-	MOV eax, a
-	call writeint
-	MOV eax, b
-	call writeint
 
 equal1:
 	RET
