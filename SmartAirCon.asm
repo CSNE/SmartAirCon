@@ -66,7 +66,6 @@ ReadInput PROTO
 Manual PROTO
 Automatic PROTO
 Output PROTO
-JukJulHan PROTO
 
 .code
 main PROC
