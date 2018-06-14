@@ -154,8 +154,6 @@ mainloop:
 	  CDQ
 	  MOV ebx, 10
 	  IDIV ebx
-	  CALL WriteDec
-	  Call Crlf
 
       INVOKE Output
 
@@ -175,8 +173,6 @@ mainloop:
 	  CDQ
 	  MOV ebx, 10
 	  IDIV ebx
-	  CALL WriteDec
-	  Call Crlf
 
       INVOKE Output
 
