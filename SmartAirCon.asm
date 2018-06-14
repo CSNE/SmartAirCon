@@ -146,15 +146,7 @@ mainloop:
 
 
    if_manual:
-	
-	  MOV x, ebx		;input으로 받은 처음 값(현재 온도) x에 저장
-	  MOV y, ecx		;input으로 받은 나중 값(원하는 온도) y에 저장
-	  
-	  ;학습 프로시져를 '적절한' 주기로 수행하기 위한 추가 알고리즘
-	  CMP ebx, x1
-	  JE for_output		; x == x1일 때 학습 패스하고 출력한다.
-
-      INVOKE Manual		;적절한에 안걸리면 
+      INVOKE Manual
 
 	  ;y값이 10 곱해져있는 상태로 보존하려 그런거라 y에 10나눠서 출력해야 됨.
 	  ;print(y)
@@ -164,8 +156,6 @@ mainloop:
 	  IDIV ebx
 	  CALL WriteDec
 	  Call Crlf
-
-	for_output:
 
       INVOKE Output
 
@@ -481,7 +471,14 @@ Manual PROC
 	;Manual : 현재 온도가 같은 상태는 두번 저장하지 않는다(?)
 	;x1,x2,y1,y2,a,b를 사용해서 anew, bnew를 구하고 k를 감소
 
+	;야 0의 이유를 알았어 받은 입력값을 x,y에 넣는 작업을 안한거같아!!! 감쪽같네..
+	MOV x, ebx		;input으로 받은 처음 값(현재 온도) x에 저장
+	MOV y, ecx		;input으로 받은 나중 값(원하는 온도) y에 저장
 
+	mov eax,x
+	cmp eax,x1	
+	jz equal1			;x가 x1과 같을 때 제외
+					;내가 이해한대로 주석달아봤는데 이게 아닌데? 한 부분은 고쳐줘!
 	mov eax,x1		;원래의 x1,y1을 x2,x2로 옮겨둠. x1,y1 바꾸려고
 	mov ebx,y1
 	mov x2,eax
@@ -733,6 +730,10 @@ Output PROC
 	RET
 Output ENDP
 
-
+JukJulHan PROC
+   ;적절하면 ax=1
+   MOV ax,1
+   RET
+JukJulHan ENDP
 
 END main
