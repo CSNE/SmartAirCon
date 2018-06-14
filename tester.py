@@ -24,5 +24,5 @@ for line in input_lines_split: #한줄씩 loop
         output_lines.append(str(round(y))) #Y 출력.
     else: #뭐야이건
         raise Exception("wut")
-with open("output.txt","w") as f: #파일에 출력
+with open("output_python.txt","w") as f: #파일에 출력
     f.write("\n".join(output_lines))
