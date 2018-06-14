@@ -5,7 +5,7 @@ BUFFER_SIZE = 5000
 
 .data
 a SDWORD 100
-b SDWORD 500      ;아래 automatic 계산에서 이걸 5000으로 바꿔서 계산해둠. 바꿀거면 자동부분도 바꿀 것
+b SDWORD -500      ;아래 automatic 계산에서 이걸 5000으로 바꿔서 계산해둠. 바꿀거면 자동부분도 바꿀 것
 a1 SDWORD ?
 b1 SDWORD ?
 anew SDWORD ?
