@@ -154,6 +154,13 @@ mainloop:
      CMP ebx, x1
      JE for_output      ; x == x1일 때 학습 패스하고 출력한다.
 
+     CMP ebx,x2
+     JNE execute_manual
+     CMP ecx,y2
+     JE for_output ;(x,y)=(x2,y2)
+
+execute_manual:
+
       INVOKE Manual      ;적절한에 안걸리면 
 
      ;y값이 10 곱해져있는 상태로 보존하려 그런거라 y에 10나눠서 출력해야 됨.
