@@ -689,19 +689,19 @@ Output PROC
 	MOV dwTempVar1,edx
 
 
-	;첫째 자리
-	MOV eax, dwTempVar1;
-	MOV BYTE PTR[esi], al;
-	INC esi
+	;첫째 자리 [DISABLED]
+	;MOV eax, dwTempVar1;
+	;MOV BYTE PTR[esi], al;
+	;INC esi
 
 	;둘째
 	MOV eax, dwTempVar2;
 	MOV BYTE PTR[esi], al;
 	INC esi
 
-	;소수점
-	MOV BYTE PTR[esi], 46; ;'.'
-	INC esi
+	;소수점 [DISABLED]
+	;MOV BYTE PTR[esi], 46; ;'.'
+	;INC esi
 
 	;셋째
 	MOV eax, dwTempVar3;
