@@ -154,11 +154,6 @@ mainloop:
 	  CDQ
 	  MOV ebx, 10
 	  IDIV ebx
-<<<<<<< HEAD
-	  CALL WriteDec
-	  Call Crlf
-=======
->>>>>>> parent of 6dc3f1a... 적절한을 메인으로 옮겼는데 x=x1일때 맞는지 봐줘!
 
       INVOKE Output
 
