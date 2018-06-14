@@ -5,7 +5,7 @@ BUFFER_SIZE = 5000
 
 .data
 a SDWORD 100
-b SDWORD -500      ;¾Æ·¡ automatic °è»ê¿¡¼­ ÀÌ°É 5000À¸·Î ¹Ù²ã¼­ °è»êÇØµÒ. ¹Ù²Ü°Å¸é ÀÚµ¿ºÎºĞµµ ¹Ù²Ü °Í
+b SDWORD 500      ;¾Æ·¡ automatic °è»ê¿¡¼­ ÀÌ°É 5000À¸·Î ¹Ù²ã¼­ °è»êÇØµÒ. ¹Ù²Ü°Å¸é ÀÚµ¿ºÎºĞµµ ¹Ù²Ü °Í
 a1 SDWORD ?
 b1 SDWORD ?
 anew SDWORD ?
@@ -146,22 +146,24 @@ mainloop:
 
 
    if_manual:
-      INVOKE Manual
+   
+     MOV x, ebx      ;inputÀ¸·Î ¹ŞÀº Ã³À½ °ª(ÇöÀç ¿Âµµ) x¿¡ ÀúÀå
+     MOV y, ecx      ;inputÀ¸·Î ¹ŞÀº ³ªÁß °ª(¿øÇÏ´Â ¿Âµµ) y¿¡ ÀúÀå
+     
+     ;ÇĞ½À ÇÁ·Î½ÃÁ®¸¦ 'ÀûÀıÇÑ' ÁÖ±â·Î ¼öÇàÇÏ±â À§ÇÑ Ãß°¡ ¾Ë°í¸®Áò
+     CMP ebx, x1
+     JE for_output      ; x == x1ÀÏ ¶§ ÇĞ½À ÆĞ½ºÇÏ°í Ãâ·ÂÇÑ´Ù.
 
-	  ;y°ªÀÌ 10 °öÇØÁ®ÀÖ´Â »óÅÂ·Î º¸Á¸ÇÏ·Á ±×·±°Å¶ó y¿¡ 10³ª´²¼­ Ãâ·ÂÇØ¾ß µÊ.
-	  ;print(y)
-	  MOV eax, y
-	  CDQ
-	  MOV ebx, 10
-	  IDIV ebx
-<<<<<<< HEAD
-<<<<<<< HEAD
-	  CALL WriteDec
-	  Call Crlf
-=======
->>>>>>> parent of 6dc3f1a... ì ì ˆí•œì„ ë©”ì¸ìœ¼ë¡œ ì˜®ê²¼ëŠ”ë° x=x1ì¼ë•Œ ë§ëŠ”ì§€ ë´ì¤˜!
-=======
->>>>>>> parent of 6dc3f1a... ì ì ˆí•œì„ ë©”ì¸ìœ¼ë¡œ ì˜®ê²¼ëŠ”ë° x=x1ì¼ë•Œ ë§ëŠ”ì§€ ë´ì¤˜!
+      INVOKE Manual      ;ÀûÀıÇÑ¿¡ ¾È°É¸®¸é 
+
+     ;y°ªÀÌ 10 °öÇØÁ®ÀÖ´Â »óÅÂ·Î º¸Á¸ÇÏ·Á ±×·±°Å¶ó y¿¡ 10³ª´²¼­ Ãâ·ÂÇØ¾ß µÊ.
+     ;print(y)
+     MOV eax, y
+     CDQ
+     MOV ebx, 10
+     IDIV ebx
+
+   for_output:
 
       INVOKE Output
 
@@ -174,15 +176,13 @@ mainloop:
       INVOKE Automatic
       
       ;ÇöÀç y¿¡ ÀúÀåµÇ¾î ÀÖ´Â °ªÀº y=(ax+b)*10ÀÇ °á°ú!
-	  ;y°ªÀÌ 10 °öÇØÁ®ÀÖ´Â »óÅÂ·Î º¸Á¸ÇÏ·Á ±×·±°Å¶ó y¿¡ 10³ª´²¼­ Ãâ·ÂÇØ¾ß µÊ.
+     ;y°ªÀÌ 10 °öÇØÁ®ÀÖ´Â »óÅÂ·Î º¸Á¸ÇÏ·Á ±×·±°Å¶ó y¿¡ 10³ª´²¼­ Ãâ·ÂÇØ¾ß µÊ.
 
-	  ;print(y)
-	  MOV eax, y
-	  CDQ
-	  MOV ebx, 10
-	  IDIV ebx
-	  CALL WriteDec
-	  Call Crlf
+     ;print(y)
+     MOV eax, y
+     CDQ
+     MOV ebx, 10
+     IDIV ebx
 
       INVOKE Output
 
@@ -221,14 +221,14 @@ mainloop:
    MOV esi, OFFSET outputBuffer
    MOV eax,0
    stringLengthLoop:
-	  MOV bl, BYTE PTR[esi]
+     MOV bl, BYTE PTR[esi]
 
-	  CMP bl,0
-	  JE stringLengthLoopExit
-	  INC eax
+     CMP bl,0
+     JE stringLengthLoopExit
+     INC eax
 
-	  INC esi
-	  JMP stringLengthLoop
+     INC esi
+     JMP stringLengthLoop
    stringLengthLoopExit:
 
    ;print("Writing to file...")
@@ -473,273 +473,262 @@ ReadInput  PROC
 ReadInput ENDP
 
 Manual PROC
-	
-	;Manual : ÇöÀç ¿Âµµ°¡ °°Àº »óÅÂ´Â µÎ¹ø ÀúÀåÇÏÁö ¾Ê´Â´Ù(?)
-	;x1,x2,y1,y2,a,b¸¦ »ç¿ëÇØ¼­ anew, bnew¸¦ ±¸ÇÏ°í k¸¦ °¨¼Ò
+   
+   ;Manual : ÇöÀç ¿Âµµ°¡ °°Àº »óÅÂ´Â µÎ¹ø ÀúÀåÇÏÁö ¾Ê´Â´Ù(?)
+   ;x1,x2,y1,y2,a,b¸¦ »ç¿ëÇØ¼­ anew, bnew¸¦ ±¸ÇÏ°í k¸¦ °¨¼Ò
 
-	;¾ß 0ÀÇ ÀÌÀ¯¸¦ ¾Ë¾Ò¾î ¹ŞÀº ÀÔ·Â°ªÀ» x,y¿¡ ³Ö´Â ÀÛ¾÷À» ¾ÈÇÑ°Å°°¾Æ!!! °¨ÂÊ°°³×..
-	MOV x, ebx		;inputÀ¸·Î ¹ŞÀº Ã³À½ °ª(ÇöÀç ¿Âµµ) x¿¡ ÀúÀå
-	MOV y, ecx		;inputÀ¸·Î ¹ŞÀº ³ªÁß °ª(¿øÇÏ´Â ¿Âµµ) y¿¡ ÀúÀå
 
-	mov eax,x
-	cmp eax,x1	
-	jz equal1			;x°¡ x1°ú °°À» ¶§ Á¦¿Ü
-					;³»°¡ ÀÌÇØÇÑ´ë·Î ÁÖ¼®´Ş¾ÆºÃ´Âµ¥ ÀÌ°Ô ¾Æ´Ñµ¥? ÇÑ ºÎºĞÀº °íÃÄÁà!
-	mov eax,x1		;¿ø·¡ÀÇ x1,y1À» x2,x2·Î ¿Å°ÜµÒ. x1,y1 ¹Ù²Ù·Á°í
-	mov ebx,y1
-	mov x2,eax
-	mov y2,ebx
-	
-	mov eax,x		;¹ŞÀº x,y¸¦ x1, y1¿¡ ³Ö¾î ÃàÀû¿ë µ¥ÀÌÅÍ °»½ÅÇÔ 
-	mov ebx,y
-	mov x1,eax
-	mov y1,ebx
-	cmp x2,10000	;
-	je equal1
-	
-	mov eax,y2
-	sub eax,y1		;eax = y2-y1
-	mov ebx,x2		
-	sub ebx,x1		;ebx = x2-x1
-	mov ecx,eax		;eax = ecx = y2-y1
-	cdq				;eax¸¦ edx·Î È®Àå
-	mov edx,100
-	imul edx		;eax*edx = 100*(y2-y1)
-	idiv ebx		;eax/ebx = 100*(y2-y1) / (x2-x1) -> ³ª´©¸é 10³¢¸®µµ ³ª´²Áö´Ï±î µû·Î 100°öÇØÁÜ
-	mov a1,eax		;a1 = 100*(y2-y1) / (x2-x1). a1Àº 100 °öÇØÁø »óÅÂ
-	
-	mov eax,ecx		;ecx¿¡ ÀúÀåÇß´ø y2-y1 eax·Î ´Ù½Ã ¿Å±â°í
-	neg eax			;eax = -(y2-y1)
-	imul x1			;¸Å°³º¯¼ö µÎ°³±æ·¡ ÇÏ³ª·Î °íÃÆ¾î! eax = -x1(100*(y2-y1) / (x2-x1)))
-	cdq
-	idiv ebx		;eax = eax/ebx ÀÇ ¸ò
-	add eax,y1		;-x1(y2-y1)/(x2-x1) + y1
-	mov b1,eax		;b1 = -x1(y2-y1)/(x2-x1) + y1
-	
-	mov eax,a		;eax = a
-	mov ebx,10		;ebx = 10
-	sub ebx,k		;ebx = ebx - k = 10 - k
-	imul ebx		;eax = a*(10-k)
-	mov ecx,eax		;ecx = eax = a*(10-k)
-	mov eax,a1		;eax = a1
-	imul k			;eax = a1*k
-	add eax,ecx		;eax = eax + ecx = a1*k + a*(10-k) -> ÀÌ·¯¸é 1000 Ãâ·Â°ªº¸´Ù °öÇØÁø »óÅÂ
-	cdq
-	mov ebx,10
-	idiv ebx		;eax = eax/10 = (a1*k + a*(10-k))/10 -> ÀÌ·¯¸é µü 100°öÇØÁø »óÅÂ ±Â
-	mov anew,eax	;anew¸¦ eax·Î °»½Å
-	
-	mov eax,b		;¹İº¹ÇØ¼­ bnew = (10-k)b + kb1 ±¸ÇÔ
-	mov ebx,10
-	sub ebx,k
-	imul ebx
-	mov ecx,eax
-	mov eax,b1
-	imul k
-	add eax,ecx
-	mov ebx,10
-	cdq
-	idiv ebx
-	mov bnew,eax
+   mov eax,x1      ;¿ø·¡ÀÇ x1,y1À» x2,x2·Î ¿Å°ÜµÒ. x1,y1 ¹Ù²Ù·Á°í
+   mov ebx,y1
+   mov x2,eax
+   mov y2,ebx
+   
+   mov eax,x      ;¹ŞÀº x,y¸¦ x1, y1¿¡ ³Ö¾î ÃàÀû¿ë µ¥ÀÌÅÍ °»½ÅÇÔ 
+   mov ebx,y
+   mov x1,eax
+   mov y1,ebx
+   cmp x2,10000   ;
+   je equal1
+   
+   mov eax,y2
+   sub eax,y1      ;eax = y2-y1
+   mov ebx,x2      
+   sub ebx,x1      ;ebx = x2-x1
+   mov ecx,eax      ;eax = ecx = y2-y1
+   cdq            ;eax¸¦ edx·Î È®Àå
+   mov edx,100
+   imul edx      ;eax*edx = 100*(y2-y1)
+   idiv ebx      ;eax/ebx = 100*(y2-y1) / (x2-x1) -> ³ª´©¸é 10³¢¸®µµ ³ª´²Áö´Ï±î µû·Î 100°öÇØÁÜ
+   mov a1,eax      ;a1 = 100*(y2-y1) / (x2-x1). a1Àº 100 °öÇØÁø »óÅÂ
+   
+   mov eax,ecx      ;ecx¿¡ ÀúÀåÇß´ø y2-y1 eax·Î ´Ù½Ã ¿Å±â°í
+   neg eax         ;eax = -(y2-y1)
+   imul x1         ;¸Å°³º¯¼ö µÎ°³±æ·¡ ÇÏ³ª·Î °íÃÆ¾î! eax = -x1(100*(y2-y1) / (x2-x1)))
+   cdq
+   idiv ebx      ;eax = eax/ebx ÀÇ ¸ò
+   add eax,y1      ;-x1(y2-y1)/(x2-x1) + y1
+   mov b1,eax      ;b1 = -x1(y2-y1)/(x2-x1) + y1
+   
+   mov eax,a      ;eax = a
+   mov ebx,10      ;ebx = 10
+   sub ebx,k      ;ebx = ebx - k = 10 - k
+   imul ebx      ;eax = a*(10-k)
+   mov ecx,eax      ;ecx = eax = a*(10-k)
+   mov eax,a1      ;eax = a1
+   imul k         ;eax = a1*k
+   add eax,ecx      ;eax = eax + ecx = a1*k + a*(10-k) -> ÀÌ·¯¸é 1000 Ãâ·Â°ªº¸´Ù °öÇØÁø »óÅÂ
+   cdq
+   mov ebx,10
+   idiv ebx      ;eax = eax/10 = (a1*k + a*(10-k))/10 -> ÀÌ·¯¸é µü 100°öÇØÁø »óÅÂ ±Â
+   mov anew,eax   ;anew¸¦ eax·Î °»½Å
+   
+   mov eax,b      ;¹İº¹ÇØ¼­ bnew = (10-k)b + kb1 ±¸ÇÔ
+   mov ebx,10
+   sub ebx,k
+   imul ebx
+   mov ecx,eax
+   mov eax,b1
+   imul k
+   add eax,ecx
+   mov ebx,10
+   cdq
+   idiv ebx
+   mov bnew,eax
 
-	cmp k,1
-	je k_decrease
-	dec k
-	k_decrease:
+   cmp k,1
+   je k_decrease
+   dec k
+   k_decrease:
 
-	
-	;a,b -> anew, bnew
-	mov eax,anew
-	mov a,eax
-	mov eax,bnew
-	mov b,eax
-	
+   
+   ;a,b -> anew, bnew
+   mov eax,anew
+   mov a,eax
+   mov eax,bnew
+   mov b,eax
+   
 
 equal1:
-	RET
+   RET
 Manual ENDP
 
 Automatic PROC
 
-	;y=ax+bÀÇ y¸¦ 10°öÇØÁø »óÅÂ·Î ¹İÈ¯ÇØ¾ßÇÏ´Âµ¥..
-	;ÀÌ¹Ì ¹ŞÀº ÈÄ´Ï±î eax, ebx, ecx ¸¾´ë·Î ½á¹ö¸²!
-	;a,x,b,y ¸ğµÎ 100 °öÇØÁ®ÀÖ´Â »óÅÂ
+   ;y=ax+bÀÇ y¸¦ 10°öÇØÁø »óÅÂ·Î ¹İÈ¯ÇØ¾ßÇÏ´Âµ¥..
+   ;ÀÌ¹Ì ¹ŞÀº ÈÄ´Ï±î eax, ebx, ecx ¸¾´ë·Î ½á¹ö¸²!
+   ;a,x,b,y ¸ğµÎ 100 °öÇØÁ®ÀÖ´Â »óÅÂ
 
-	MOV x, ebx
+   MOV x, ebx
 
-	cmp x,301
-	jne debugif
-	mov eax,100
-	debugif:
+   cmp x,301
+   jne debugif
+   mov eax,100
+   debugif:
 
-	MOV ecx, b		;¿ø·¡ b°ª ecx¿¡ ÀúÀåÇØµÒ
-	MOV eax, 100
-	IMUL b
-	MOV b, eax		;b = b*100(100°öÇØÁ® ÀÖ´Â »óÅÂ)
-	MOV eax, a
-	IMUL x			;eax = a*x
+   MOV ecx, b      ;¿ø·¡ b°ª ecx¿¡ ÀúÀåÇØµÒ
+   MOV eax, 100
+   IMUL b
+   MOV b, eax      ;b = b*100(100°öÇØÁ® ÀÖ´Â »óÅÂ)
+   MOV eax, a
+   IMUL x         ;eax = a*x
 
-	ADD eax, b		;eax = ax+b
-	MOV ebx, 100
-	cdq
-	IDIV ebx			;eax = (ax+b)/100
-	MOV y, eax		;y´Â 10°öÇØÁ®ÀÖ´Â »óÅÂ
-	
-	mov ebx,10
-	cdq
-	idiv ebx
-	cmp edx,5
-	jb not_plus
-	add eax,1
-	not_plus:
-	imul ebx
+   ADD eax, b      ;eax = ax+b
+   MOV ebx, 100
+   cdq
+   IDIV ebx         ;eax = (ax+b)/100
+   MOV y, eax      ;y´Â 10°öÇØÁ®ÀÖ´Â »óÅÂ
+   
+   mov ebx,10
+   cdq
+   idiv ebx
+   cmp edx,5
+   jb not_plus
+   add eax,1
+   not_plus:
+   imul ebx
 
-	mov y,eax
+   mov y,eax
 
-	MOV b, ecx		;b°ª º¹¿ø. 10¸¸ °öÇØÁ®ÀÖ´Â »óÅÂ·Î
+   MOV b, ecx      ;b°ª º¹¿ø. 10¸¸ °öÇØÁ®ÀÖ´Â »óÅÂ·Î
 
-	RET
+   RET
 Automatic ENDP
 
 Output PROC
-	;ax·Î ¼ıÀÚ * 10À» ¹Ş°í Ãâ·ÂÇÔ
-	;Âù¼Ö
-	
-	
-	;esi: Áö±İ ¾²°í ÀÖ´Â string ÁÖ¼Ò
-	;ecx: Áö±İ ¼ıÀÚ
-	;eax,edx,ebx: DIV ¸í·É¾î¿¡ ¾²ÀÓ
+   ;ax·Î ¼ıÀÚ * 10À» ¹Ş°í Ãâ·ÂÇÔ
+   ;Âù¼Ö
+   
+   
+   ;esi: Áö±İ ¾²°í ÀÖ´Â string ÁÖ¼Ò
+   ;ecx: Áö±İ ¼ıÀÚ
+   ;eax,edx,ebx: DIV ¸í·É¾î¿¡ ¾²ÀÓ
 
-	;dwTempVar1: Ã¹¹øÂ° ÀÚ¸®
-	;dwTempVar2: µÎ¹øÂ° ÀÚ¸®
-	;dwTempVar3: ¼¼¹øÂ° ÀÚ¸®(¼Ò¼öÁ¡ ¾Æ·¡)
-
-
-	;stringÀÇ ¸Ç ³¡À» Ã£À½
-	MOV ecx, LENGTHOF outputBuffer
-	MOV esi, OFFSET outputBuffer
-	stringloop:
-		MOV bl, BYTE PTR[esi]  ;bl=string[esi]
-		ADD bl, 0
-		JZ endloop           ;if bl==0: break
-
-		DEC ecx                ;ecx-- (ecx=³²¾ÆÀÖ´Â byte °³¼ö)
-		
-		MOV edx,ecx
-		SUB edx,10
-		CMP edx,0
-		JNG bufferOverrun     ;if ecx<10: goto bufferOverrun
-
-		INC esi                ;esi++ (next character...)
-
-		JMP stringloop         ;loop forever
-	endloop:
-
-	;°è»ê ax¸¦ ecx·Î ¿Å°ÜµÒ
-	MOVZX ecx, ax
+   ;dwTempVar1: Ã¹¹øÂ° ÀÚ¸®
+   ;dwTempVar2: µÎ¹øÂ° ÀÚ¸®
+   ;dwTempVar3: ¼¼¹øÂ° ÀÚ¸®(¼Ò¼öÁ¡ ¾Æ·¡)
 
 
+   ;stringÀÇ ¸Ç ³¡À» Ã£À½
+   MOV ecx, LENGTHOF outputBuffer
+   MOV esi, OFFSET outputBuffer
+   stringloop:
+      MOV bl, BYTE PTR[esi]  ;bl=string[esi]
+      ADD bl, 0
+      JZ endloop           ;if bl==0: break
+
+      DEC ecx                ;ecx-- (ecx=³²¾ÆÀÖ´Â byte °³¼ö)
+      
+      MOV edx,ecx
+      SUB edx,10
+      CMP edx,0
+      JNG bufferOverrun     ;if ecx<10: goto bufferOverrun
+
+      INC esi                ;esi++ (next character...)
+
+      JMP stringloop         ;loop forever
+   endloop:
+
+   ;°è»ê ax¸¦ ecx·Î ¿Å°ÜµÒ
+   MOVZX ecx, ax
 
 
-	; eax=ecx/10
-	; edx=ecx%10
-	MOV eax, ecx ;eax¿¡ ³Ö°í
-	CDQ          ;edx·Î È®Àå
-	MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
-	DIV ebx      ;DIV
-
-	; ¼ö --> ascii
-	; '0'=48
-	; edx=toString(edx)
-	ADD edx, 48
-
-	;dwTempVar3=edx
-	MOV dwTempVar3,edx
-
-	;ecx=ecx/10
-	MOV ecx, eax
 
 
-	; eax=ecx/10
-	; edx=ecx%10
-	MOV eax, ecx ;eax¿¡ ³Ö°í
-	CDQ          ;edx·Î È®Àå
-	MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
-	DIV ebx      ;DIV
+   ; eax=ecx/10
+   ; edx=ecx%10
+   MOV eax, ecx ;eax¿¡ ³Ö°í
+   CDQ          ;edx·Î È®Àå
+   MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
+   DIV ebx      ;DIV
 
-	; ¼ö --> ascii
-	; '0'=48
-	; edx=toString(edx)
-	ADD edx, 48
+   ; ¼ö --> ascii
+   ; '0'=48
+   ; edx=toString(edx)
+   ADD edx, 48
 
-	;dwTempVar2=edx
-	MOV dwTempVar2,edx
+   ;dwTempVar3=edx
+   MOV dwTempVar3,edx
 
-	;ecx=ecx/10
-	MOV ecx, eax
-
-
-	; eax=ecx/10
-	; edx=ecx%10
-	MOV eax, ecx ;eax¿¡ ³Ö°í
-	CDQ          ;edx·Î È®Àå
-	MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
-	DIV ebx      ;DIV
-
-	; ¼ö --> ascii
-	; '0'=48
-	; edx=toString(edx)
-	ADD edx, 48
-
-	;dwTempVar1=edx
-	MOV dwTempVar1,edx
+   ;ecx=ecx/10
+   MOV ecx, eax
 
 
-	;Ã¹Â° ÀÚ¸® [DISABLED]
-	;MOV eax, dwTempVar1;
-	;MOV BYTE PTR[esi], al;
-	;INC esi
+   ; eax=ecx/10
+   ; edx=ecx%10
+   MOV eax, ecx ;eax¿¡ ³Ö°í
+   CDQ          ;edx·Î È®Àå
+   MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
+   DIV ebx      ;DIV
 
-	;µÑÂ°
-	MOV eax, dwTempVar2;
-	MOV BYTE PTR[esi], al;
-	INC esi
+   ; ¼ö --> ascii
+   ; '0'=48
+   ; edx=toString(edx)
+   ADD edx, 48
 
-	;¼Ò¼öÁ¡ [DISABLED]
-	;MOV BYTE PTR[esi], 46; ;'.'
-	;INC esi
+   ;dwTempVar2=edx
+   MOV dwTempVar2,edx
 
-	;¼ÂÂ°
-	MOV eax, dwTempVar3;
-	MOV BYTE PTR[esi], al;
-	INC esi
-
-	;Carriage return
-	MOV BYTE PTR[esi], 13;'\r'
-	INC esi
-
-	;Newline
-	MOV BYTE PTR[esi], 10;'\n'
-	INC esi
+   ;ecx=ecx/10
+   MOV ecx, eax
 
 
-	JMP terminate
+   ; eax=ecx/10
+   ; edx=ecx%10
+   MOV eax, ecx ;eax¿¡ ³Ö°í
+   CDQ          ;edx·Î È®Àå
+   MOV ebx,10   ;³ª´­ ¼ö ³ÖÀ½
+   DIV ebx      ;DIV
+
+   ; ¼ö --> ascii
+   ; '0'=48
+   ; edx=toString(edx)
+   ADD edx, 48
+
+   ;dwTempVar1=edx
+   MOV dwTempVar1,edx
 
 
-	bufferOverrun: ;¹öÆÛ ÅÍÁ³À»¶§
-		mov edx, OFFSET errMsg4
-		call WriteString
-	
+   ;Ã¹Â° ÀÚ¸® [DISABLED]
+   ;MOV eax, dwTempVar1;
+   ;MOV BYTE PTR[esi], al;
+   ;INC esi
 
-	terminate:
-	
-	RET
+   ;µÑÂ°
+   MOV eax, dwTempVar2;
+   MOV BYTE PTR[esi], al;
+   INC esi
+
+   ;¼Ò¼öÁ¡ [DISABLED]
+   ;MOV BYTE PTR[esi], 46; ;'.'
+   ;INC esi
+
+   ;¼ÂÂ°
+   MOV eax, dwTempVar3;
+   MOV BYTE PTR[esi], al;
+   INC esi
+
+   ;Carriage return
+   MOV BYTE PTR[esi], 13;'\r'
+   INC esi
+
+   ;Newline
+   MOV BYTE PTR[esi], 10;'\n'
+   INC esi
+
+
+   JMP terminate
+
+
+   bufferOverrun: ;¹öÆÛ ÅÍÁ³À»¶§
+      mov edx, OFFSET errMsg4
+      call WriteString
+   
+
+   terminate:
+   
+   RET
 Output ENDP
 
-JukJulHan PROC
-   ;ÀûÀıÇÏ¸é ax=1
-   MOV ax,1
-   RET
-JukJulHan ENDP
+
 
 END main
