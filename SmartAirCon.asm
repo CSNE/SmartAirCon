@@ -477,7 +477,7 @@ Manual PROC
 
 	mov eax,x
 	cmp eax,x1	
-	jz equal1
+	jz equal1			;x가 x1과 같을 때 제외
 					;내가 이해한대로 주석달아봤는데 이게 아닌데? 한 부분은 고쳐줘!
 	mov eax,x1		;원래의 x1,y1을 x2,x2로 옮겨둠. x1,y1 바꾸려고
 	mov ebx,y1
